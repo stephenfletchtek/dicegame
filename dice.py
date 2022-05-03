@@ -8,11 +8,14 @@ class Die:
         if not isinstance(sides, int):
             raise ValueError('Must have a whole number of sides')
         self.value = value or random.randint(1, sides)
+        # sides attribute was not visible and failed tests
+        self.sides = sides
 
     def __int__(self):
-        return self.value
+        return int(self.value)
 
-    def __eq_(self, other):
+    # this was typoed as def __eq_ and picked up on test
+    def __eq__(self, other):
         return int(self) == other
 
     def __ne__(self, other):
