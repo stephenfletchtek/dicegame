@@ -1,6 +1,10 @@
+#######################################################################
+# The tutorial gave the 1st 14 lines of code and asked the student to #
+# complete the rest.                                                  #
+# I aligned the scoring to closely match the UK version of 'Yahtzee'  #
+#######################################################################
 class YahtzeeScoresheet:
-    #It's all about the Yahtzee dict list hand._sets.items()
-
+    # It's all about the Yahtzee dict list hand._sets.items()
     def _score_set(self, hand, set_size):
         scores = [0]
         for dict_index, how_many in hand._sets.items():

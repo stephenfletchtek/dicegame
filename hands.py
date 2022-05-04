@@ -1,3 +1,8 @@
+#############################################################
+# python tutorial to make a 'hand' of die objects           #
+# and then a yahtzeehand of 5 dice based on the Hand object #
+# Code based on tutorial                                    #
+#############################################################
 from dice import D6
 
 
@@ -18,7 +23,8 @@ class Hand(list):
     def _by_value(self, value):
         dice = []
         for die in self:
-             if die.value == value:
+            # no need for die.value
+            if die == value:
                 dice.append(die)
         return dice
 

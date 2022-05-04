@@ -1,7 +1,15 @@
+###############################################################
+# Basic implementation of dice game                           #
+# Running 'game.py' rolls the dice                            #
+# Can then score or reroll up to two times                    #
+# To reroll - list the numbers to reroll e.g. 1, 2            #
+# To score - type the func_dict key e.g. '3kind'              #
+# This was written to test dice, hands, reroll & scoresheets  #
+# It doesn't have a user interface and doesnt keep the scores #
+###############################################################
 from hands import YahtzeeHand
 from reroll import RerollHand
 from scoresheets import YahtzeeScoresheet
-
 
 yhand = YahtzeeHand()
 
@@ -23,6 +31,7 @@ func_dict = {
 
 print(yhand)
 
+# up to two rerolls
 for _ in range (2):
     decision = input('Score or list dice to re-roll:   ')
     if decision.upper() == 'S':
@@ -31,10 +40,8 @@ for _ in range (2):
         yhand = RerollHand(yhand, *decision)
         print(yhand)
 
-
 try:
     my_score = func_dict[input('What shall I score?   ')](yhand)
     print(my_score)
 except:
     print('Invalid score command')
-    

@@ -1,3 +1,6 @@
+######################################################
+# These unit tests check dice behaviour in 'dice.py' #
+######################################################
 import unittest
 
 import dice

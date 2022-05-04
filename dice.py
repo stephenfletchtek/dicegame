@@ -1,6 +1,12 @@
+########################################
+# python tutorial to make a die object #
+# and then a D6 based on die object    #
+# Code based on tutorial               #
+########################################
 import random
 
 
+# Die object
 class Die:
     def __init__(self, sides=2, value=0):
         if not sides >= 2:
@@ -43,6 +49,7 @@ class Die:
         return str(self.value)
 
 
+# make a D6
 class D6(Die):
     def __init__(self, value = 0):
         super().__init__(sides=6, value = value)

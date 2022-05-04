@@ -1,3 +1,9 @@
+##########################################################################
+# This experiment builds upon 'game.py'                                  #
+# Running 'auto.py' will roll the dice                                   #
+# It will then search for the highest score it can achieve from the dice #
+# This could be further developed as a 'computer' player                 #
+##########################################################################
 from hands import YahtzeeHand
 from scoresheets import YahtzeeScoresheet
 
@@ -19,14 +25,14 @@ score_dict = {
     'chance':YahtzeeScoresheet().score_chance
 }
 
-
+# search available scores for highest score
 while score_dict:
 
-    #roll the dice
+    # roll the dice
     y = YahtzeeHand()
     print(y)
 
-    #try all the scores
+    # try all available scores
     my_score = 0
     score_index = 0
     scores = [0],[0]
@@ -35,7 +41,7 @@ while score_dict:
         scores[0].append(index)
         scores[1].append(score_dict[index](y))
 
-    #max score and total
+    # max score and total
     score_index = scores[1].index(max(scores[1]))
     my_score = scores[1][score_index]
 
@@ -43,16 +49,16 @@ while score_dict:
     print('{}: {}'.format(scores[0][score_index], my_score))
     print('Total score: {}'.format(total_score))
 
-    #accept?
+    # accept?
     proceed = input('Continue or Quit?   ')
 
     if proceed.upper() == 'C':
-        #pop scored item off the list
-        if my_score !=0:
-            print('popping!')
+        print()
+        # pop scored item off the list
+        if my_score != 0:
             element = score_dict.pop(scores[0][score_index])
-        #pop top of list if zero score
-        elif my_score ==0:
+        # pop top of list if zero score
+        elif my_score == 0:
             element = score_dict.pop(next(iter(score_dict)))
     else:
         break

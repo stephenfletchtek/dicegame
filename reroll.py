@@ -1,39 +1,41 @@
+############################################################
+# I added the capability to reroll part or all of the hand #
+############################################################
 from dice import D6
 
 
+# the modifiable hand takes a reroll_list of those dice to reroll
 class Modhand(list):
-    #build the hand
+    # build the hand
     def __init__(self, hand, *reroll_list, size=0, die_class=None, **kwargs):
         if not die_class:
             raise VaueError('You must have a die class')
 
-        #modify the hand by inserting new dice
-        #over existing numbers specified in reroll_list
+        # modify the hand by inserting new dice
+        # over existing numbers specified in reroll_list
         try:
             for element in reroll_list:
                 hand = list(map(int, hand))
                 hand[hand.index(int(element))] = die_class()
         except:
-            #handle an empty list
+            # handle an empty list
             print('Invalid reroll list')
         finally:
-            #put the dice into the Modhand object
+            # put the dice into the Modhand object
             for item in hand:
                 self.append(item)
                 self.sort()
 
-
-    #list the dice in the hand of a given value
+    # list the dice in the hand of a given value
     def _by_value(self, value):
         dice = []
         for die in self:
-            #Kenneth said int is not needed
-            #But mine only works if int is included!
-            if int(die) == value:
+            # no need for 'int(die)'
+            if die == value:
                 dice.append(die)
         return dice
 
-#will make a hand of 5 dice using super() through class Hand
+# will make a hand of 5 dice using super() through class Hand
 class RerollHand(Modhand):
     def __init__(self, hand, *reroll_list, **kwargs):
         super().__init__(hand, *reroll_list, size=5, die_class=D6, **kwargs)
@@ -64,7 +66,7 @@ class RerollHand(Modhand):
         return self._by_value(6)
 
     @property
-    #create a dict of the sets
+    # create a dict of the sets
     def _sets(self):
         return {
             1: len(self.ones),

@@ -1,6 +1,10 @@
-####################################################################
-# Single player yahtzee game where scores are stored in a database #
-####################################################################
+########################################################################
+# The turorial did not have this file - it simply rolled one hand      #
+# and alowed it to be scored                                           #
+# I connected a database and made this a solo player game based on the #
+# UK version of Yahtzee                                                #
+# It is a simple user interface through command line / terminal prompt #
+########################################################################
 from collections import OrderedDict
 from peewee import *
 from hands import YahtzeeHand
@@ -69,7 +73,7 @@ def menu_loop():
             rolled = result[0]
             rerolls = result[1]
 
-#roll the dice
+# roll the dice
 def roll_dice(rolled, rerolls):
     """Roll dice."""
     if not rolled:
@@ -114,7 +118,7 @@ def reroll(rolled, rerolls):
         print('Roll dice first\n')
     return rolled, rerolls
 
-#score the hand if dice were rolled
+# score the hand if dice were rolled
 def score_hand(rolled, rerolls):
     """Score hand."""
     if rolled:
