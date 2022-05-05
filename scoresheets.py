@@ -4,7 +4,7 @@
 # I aligned the scoring to closely match the UK version of 'Yahtzee'  #
 #######################################################################
 class YahtzeeScoresheet:
-    # It's all about the Yahtzee dict list hand._sets.items()
+    # It's all about the hand._sets dict
     def _score_set(self, hand, set_size):
         scores = [0]
         for key, value in hand._sets.items():
@@ -21,16 +21,18 @@ class YahtzeeScoresheet:
     def score_four_kind(self, hand):
         return self._score_set(hand, 4)
 
+    # full house is 3 of a kind and 2 of a kind
     def score_full_house(self, hand):
-        for index in range(1, 6):
-            # set of three
-            if hand._sets[index] == 3:
-                for index in range(1, 6):
-                    # set of two
-                    if hand._sets[index] == 2:
+        for key, value in hand._sets.items():
+            # 3 of a kind
+            if value == 3:
+                for key, value in hand._sets.items():
+                    # 2 of a kind
+                    if value == 2:
                         return 25
         return 0
 
+    # small straight is 4 in a row
     def score_sm(self, hand):
         count = 0
         for key, value in hand._sets.items():
@@ -48,7 +50,7 @@ class YahtzeeScoresheet:
         for key, value in hand._sets.items():
             if value:
                 count += 1
-            elif key >1:
+            elif key > 1:
                 break
         if count == 5:
             return 40

@@ -56,7 +56,7 @@ class DieTests(unittest.TestCase):
             {'function':score_obj.score_three_kind(self.hand[7]), 'score':0},
             {'function':score_obj.score_four_kind(self.hand[4]), 'score':20},
             {'function':score_obj.score_four_kind(self.hand[6]), 'score':0},
-            # {'function':score_obj.score_full_house(self.hand[6]), 'score':25},
+            {'function':score_obj.score_full_house(self.hand[6]), 'score':25},
             {'function':score_obj.score_full_house(self.hand[0]), 'score':0},
             {'function':score_obj.score_sm(self.hand[7]), 'score':30},
             {'function':score_obj.score_sm(self.hand[8]), 'score':30},
