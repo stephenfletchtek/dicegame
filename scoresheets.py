@@ -4,12 +4,12 @@
 # I aligned the scoring to closely match the UK version of 'Yahtzee'  #
 #######################################################################
 class YahtzeeScoresheet:
-    # It's all about the Yahtzee dict list hand._sets.items()
+    # It's all about the hand._sets dict
     def _score_set(self, hand, set_size):
         scores = [0]
-        for dict_index, how_many in hand._sets.items():
-            if how_many == set_size:
-                scores.append(dict_index*set_size)
+        for key, value in hand._sets.items():
+            if value >= set_size:
+                scores.append(key*set_size)
         return max(scores)
 
     def score_one_pair(self, hand):
@@ -21,20 +21,24 @@ class YahtzeeScoresheet:
     def score_four_kind(self, hand):
         return self._score_set(hand, 4)
 
+    # full house is 3 of a kind and 2 of a kind
     def score_full_house(self, hand):
-        my_three = int(self.score_three_kind(hand))/3
-        my_two = int(self.score_one_pair(hand))/2
-        if my_three and my_two and my_three != my_two:
-            return 25
-        else:
-            return 0
+        for key, value in hand._sets.items():
+            # 3 of a kind
+            if value == 3:
+                for key, value in hand._sets.items():
+                    # 2 of a kind
+                    if value == 2:
+                        return 25
+        return 0
 
+    # small straight is 4 in a row
     def score_sm(self, hand):
         count = 0
-        for dict_index, how_many in hand._sets.items():
-            if how_many:
+        for key, value in hand._sets.items():
+            if value:
                 count += 1
-            elif dict_index > 2:
+            elif key > 2:
                 break
         if count >= 4:
             return 30
@@ -43,10 +47,10 @@ class YahtzeeScoresheet:
 
     def score_lg(self, hand):
         count = 0
-        for dict_index, how_many in hand._sets.items():
-            if how_many:
+        for key, value in hand._sets.items():
+            if value:
                 count += 1
-            elif dict_index >1:
+            elif key > 1:
                 break
         if count == 5:
             return 40
@@ -60,10 +64,8 @@ class YahtzeeScoresheet:
             return 0
 
     def score_chance(self, hand):
-        score = 0
-        for dict_index, how_many in hand._sets.items():
-            score += dict_index*how_many
-        return score
+        scores = [key * hand._sets[key] for key in hand._sets]
+        return sum(scores)
 
     def score_ones(self, hand):
         return sum(hand.ones)

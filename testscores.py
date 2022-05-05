@@ -9,41 +9,66 @@ import dice, hands, scoresheets
 # test properties of Die
 class DieTests(unittest.TestCase):
     def setUp(self):
-        # a hand of 5 random dice
-        self.hand = hands.YahtzeeHand()
-        # a hand of 5 ones
-        self.ones = self.hand
-        for die in self.ones:
-            die.value = 1
+        # make 8 hands to test scoring
+        self.hand = []
+        for _ in range(9):
+            self.hand.append(hands.YahtzeeHand())
+
+        for index in range(9):
+            for item in range(5):
+                # ones to sixes
+                if index < 6:
+                    self.hand[index][item].value = index + 1
+                # [6] is full house, [7] is small straight, [8] is lge straight
+                elif index == 6 or index == 7:
+                    if item < 2:
+                        self.hand[index][item].value = 2
+                    else:
+                        self.hand[6][item].value = 3
+                        self.hand[7][item].value = item + 1
+                else:
+                    self.hand[index][item].value = item + 1
 
     def test_creation(self):
-        self.assertIsInstance(self.hand, hands.Hand)
-        self.assertIsInstance(self.ones, hands.Hand)
-        self.assertEqual(len(self.hand), 5)
-        self.assertEqual(len(self.ones), 5)
+        for index in range(9):
+            self.assertIsInstance(self.hand[index], hands.Hand)
+            self.assertEqual(len(self.hand[index]), 5)
 
     def test_eq(self):
-        # the expected scores for a hand of ones
+        # check each hand scores as anticipated
+        # instantiate object
         score_obj = scoresheets.YahtzeeScoresheet()
-        hand = self.ones
+        # the expected scores for each hand
         scores = [
-            {'function':score_obj.score_ones(hand), 'score':5},
-            {'function':score_obj.score_twos(hand), 'score':0},
-            {'function':score_obj.score_threes(hand), 'score':0},
-            {'function':score_obj.score_fours(hand), 'score':0},
-            {'function':score_obj.score_fives(hand), 'score':0},
-            {'function':score_obj.score_sixes(hand), 'score':0},
-            # commented out lines fail and need fixing
-            # {'function':score_obj.score_three_kind(hand), 'score':3},
-            # {'function':score_obj.score_four_kind(hand), 'score':4},
-            # {'function':score_obj.score_full_house(hand), 'score':25},
-            # {'function':score_obj.score_sm(hand), 'score':30},
-            # {'function':score_obj.score_lg(hand), 'score':40},
-            {'function':score_obj.score_yahtzee(hand), 'score':50},
-            {'function':score_obj.score_chance(hand), 'score':5}
+            {'function':score_obj.score_ones(self.hand[0]), 'score':5},
+            {'function':score_obj.score_ones(self.hand[1]), 'score':0},
+            {'function':score_obj.score_twos(self.hand[1]), 'score':10},
+            {'function':score_obj.score_twos(self.hand[2]), 'score':0},
+            {'function':score_obj.score_threes(self.hand[2]), 'score':15},
+            {'function':score_obj.score_threes(self.hand[3]), 'score':0},
+            {'function':score_obj.score_fours(self.hand[3]), 'score':20},
+            {'function':score_obj.score_fours(self.hand[4]), 'score':0},
+            {'function':score_obj.score_fives(self.hand[4]), 'score':25},
+            {'function':score_obj.score_fives(self.hand[5]), 'score':0},
+            {'function':score_obj.score_sixes(self.hand[5]), 'score':30},
+            {'function':score_obj.score_sixes(self.hand[0]), 'score':0},
+            {'function':score_obj.score_three_kind(self.hand[5]), 'score':18},
+            {'function':score_obj.score_three_kind(self.hand[7]), 'score':0},
+            {'function':score_obj.score_four_kind(self.hand[4]), 'score':20},
+            {'function':score_obj.score_four_kind(self.hand[6]), 'score':0},
+            {'function':score_obj.score_full_house(self.hand[6]), 'score':25},
+            {'function':score_obj.score_full_house(self.hand[0]), 'score':0},
+            {'function':score_obj.score_sm(self.hand[7]), 'score':30},
+            {'function':score_obj.score_sm(self.hand[8]), 'score':30},
+            {'function':score_obj.score_sm(self.hand[0]), 'score':0},
+            {'function':score_obj.score_lg(self.hand[8]), 'score':40},
+            {'function':score_obj.score_lg(self.hand[7]), 'score':0},
+            {'function':score_obj.score_yahtzee(self.hand[5]), 'score':50},
+            {'function':score_obj.score_yahtzee(self.hand[6]), 'score':0},
+            {'function':score_obj.score_chance(self.hand[6]), 'score':13},
+            {'function':score_obj.score_chance(self.hand[5]), 'score':30}
         ]
-
-        # check each score for a hand of ones is as anticipated
+        # loop through each test
         for item in scores:
             self.assertEqual(item['function'], item['score'])
 
