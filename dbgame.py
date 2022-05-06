@@ -72,6 +72,8 @@ def menu_loop():
             result = menu[choice](rolled, rerolls)
             rolled = result[0]
             rerolls = result[1]
+    # close the database
+    db.close()
 
 # roll the dice
 def roll_dice(rolled, rerolls):
@@ -190,6 +192,8 @@ def delete_games(rolled, rerolls):
     """Delete all games."""
     if input('Are you sure? [y/N]').lower().strip() == 'y':
         Game.delete().execute()
+        # close the database
+        db.close()
         initialise()
         print('All games deleted!')
     return rolled, rerolls
