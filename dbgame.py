@@ -34,12 +34,6 @@ class Game(Model):
         database = db
 
 
-def initialise():
-    db.connect()
-    db.create_tables([Game],safe=True)
-    #start a new game - scores get added as dice are rolled
-    Game.create()
-
 func_dict = {
     '1':YahtzeeScoresheet().score_ones,
     '2':YahtzeeScoresheet().score_twos,
@@ -56,6 +50,15 @@ func_dict = {
     'chance':YahtzeeScoresheet().score_chance
 }
 
+# create a new game
+def initialise():
+    db.connect()
+    # create table if it doesn't already exist
+    db.create_tables([Game],safe=True)
+    # create a new game
+    Game.create()
+
+# main menu loop
 def menu_loop():
     """Main menu."""
     choice = None
@@ -125,9 +128,10 @@ def score_hand(rolled, rerolls):
     """Score hand."""
     if rolled:
         print('{} What shall I score?'.format(rolled))
-        score_list = list(func_dict.keys())
+        # get most recent game as a dict
+        game_dict = Game.select().order_by(Game.index.desc()).dicts().get()
         #show items not already scored
-        available_scores(score_list)
+        score_list = available_scores(game_dict)
         print(score_list)
 
         my_input = input('> ').lower().strip()
@@ -198,17 +202,15 @@ def delete_games(rolled, rerolls):
         print('All games deleted!')
     return rolled, rerolls
 
-def available_scores(score_list):
-    current_game = Game.select().order_by(Game.index.desc()).dicts().get()
-
-    invert_list = []
-    for value in current_game.values():
-        invert_list.insert(0, value)
-    invert_list.pop()
-    for item in range(len(invert_list)):
-        if invert_list[item] != -1:
-            score_list.pop((len(invert_list) - 1 ) - item)
-    return score_list
+# takes a dict of the (current) game to check scores against
+# returns a list of 'func_dict' keys where database score is '-1'
+def available_scores(game):
+    # list of database keys in 'game' but not 'index'
+    in_db = [key for key in game if key != 'index']
+    # list of keys to display for scoring
+    to_score = [key for key in func_dict]
+    # give 'to score' key if value of game key is '-1'
+    return [to_score[i] for i in range(len(to_score)) if game[in_db[i]] == -1]
 
 menu = OrderedDict([
         ('r', roll_dice),
