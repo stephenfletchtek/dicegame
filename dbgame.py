@@ -123,7 +123,7 @@ def reroll(rolled, rerolls):
         print('Roll dice first\n')
     return rolled, rerolls
 
-# score the hand if dice were rolled
+# score the hand and record in database if dice were rolled
 def score_hand(rolled, rerolls):
     """Score hand."""
     if rolled:
@@ -136,30 +136,21 @@ def score_hand(rolled, rerolls):
 
         my_input = input('> ').lower().strip()
         if my_input in score_list:
+            # convert input to database field
+            input_k = [key for key in func_dict]
+            db_keys = [key for key in game_dict if key != 'index']
+            convert = {input_k[k]: db_keys[k] for k in range(len(input_k))}
+            # determine the score
             my_score = func_dict[my_input](rolled)
+            # select game
             current_game = Game.select().order_by(Game.index.desc()).get()
-
-            if my_input == '1': current_game.aces = my_score
-            if my_input == '2': current_game.twos = my_score
-            if my_input == '3': current_game.threes = my_score
-            if my_input == '4': current_game.fours = my_score
-            if my_input == '5': current_game.fives = my_score
-            if my_input == '6': current_game.sixes = my_score
-            if my_input == '3kind': current_game.three_kind = my_score
-            if my_input == '4kind': current_game.four_kind = my_score
-            if my_input == 'house': current_game.house = my_score
-            if my_input == 'sm': current_game.sm = my_score
-            if my_input == 'lg': current_game.lg = my_score
-            if my_input == 'yahtzee': current_game.yahtzee = my_score
-            if my_input == 'chance': current_game.chance = my_score
-
+            # modify database
+            setattr(current_game, convert[my_input], my_score)
             current_game.save()
             print('Score: {} saved!\n'.format(my_score))
-
             #reset game after scoring
             rerolls = 0
             rolled = None
-
         else:
             print('"{}" is not in the list.\n'.format(my_input))
     else:
