@@ -34,12 +34,6 @@ class Game(Model):
         database = db
 
 
-def initialise():
-    db.connect()
-    db.create_tables([Game],safe=True)
-    #start a new game - scores get added as dice are rolled
-    Game.create()
-
 func_dict = {
     '1':YahtzeeScoresheet().score_ones,
     '2':YahtzeeScoresheet().score_twos,
@@ -56,6 +50,16 @@ func_dict = {
     'chance':YahtzeeScoresheet().score_chance
 }
 
+# create a new game
+def initialise():
+    # reuse if already connected
+    db.connect(reuse_if_open=True)
+    # create table if it doesn't already exist
+    db.create_tables([Game],safe=True)
+    # create a new game
+    Game.create()
+
+# main menu loop
 def menu_loop():
     """Main menu."""
     choice = None
@@ -73,7 +77,23 @@ def menu_loop():
             rolled = result[0]
             rerolls = result[1]
 
+        # end of game if all scores are assigned
+        end_game = Game.select().order_by(Game.index.desc()).dicts().get()
+        if len(available_scores(end_game)) == 0:
+            scores = [end_game[key] for key in end_game if key != 'index']
+            print(f'Final score: {sum(scores)}')
+            print('Game Over! \n')
+            next_action = input('New game or quit? [N/q] \n').lower().strip()
+            if next_action == 'q':
+                break
+            else:
+                initialise()
+    # close the database
+    db.close()
+
 # roll the dice
+# takes a rolled hand and number of rerolls
+# returns a hand and rerolls = 0
 def roll_dice(rolled, rerolls):
     """Roll dice."""
     if not rolled:
@@ -81,32 +101,27 @@ def roll_dice(rolled, rerolls):
         print(rolled)
     else:
         print('Hand already rolled: {}'.format(rolled))
-
     return rolled, rerolls
 
 #re-roll the dice if they were rolled and allow 2 attempts
+# takes a rolled hand and number of rerolls
+# returns a new rolled hand and increments rerolls by +1
 def reroll(rolled, rerolls):
     """Reroll selected dice."""
     if rolled:
         if rerolls < 2:
-            decision = input('List dice to re-roll:   ')
-
             #validate decision by comparing roll_list and reroll_list
-            #strip out non numeric characters so any input will work!
-            stripped_decision = filter(str.isdigit, decision)
-            reroll_list = list(map(int, stripped_decision))
+            decision = input('List dice to re-roll:   ')
+            # list of integers from 'decision'
+            reroll_list = list(map(int, filter(str.isdigit, decision)))
+            # map dice.D6 to integer for comparision
             roll_list = list(map(int, rolled))
-
-            match = False
-            for item in reroll_list:
-                if reroll_list.count(item) > roll_list.count(item):
-                    match = False
-                    break
-                else:
-                    match = True
-
-            #if list is valid
-            if match:
+            # check re_roll list is valid - each item must be in the original
+            check_list = [
+                False if reroll_list.count(item) > roll_list.count(item)
+                else True for item in reroll_list
+            ]
+            if not False in check_list:
                 rolled = RerollHand(rolled, *reroll_list)
                 rerolls += 1
                 print('New hand {}\n'.format(rolled))
@@ -118,93 +133,87 @@ def reroll(rolled, rerolls):
         print('Roll dice first\n')
     return rolled, rerolls
 
-# score the hand if dice were rolled
+# score the hand and record in database if dice were rolled
+# takes a rolled hand and number of rerolls
+# returns an empty hand and zero rerolls if score was valid
 def score_hand(rolled, rerolls):
     """Score hand."""
     if rolled:
         print('{} What shall I score?'.format(rolled))
-        score_list = list(func_dict.keys())
-        #show items not already scored
-        available_scores(score_list)
+        # get most recent game as a dict
+        game_dict = Game.select().order_by(Game.index.desc()).dicts().get()
+        # show items not already scored
+        score_list = available_scores(game_dict)
         print(score_list)
 
         my_input = input('> ').lower().strip()
         if my_input in score_list:
+            # convert input to database field
+            input_k = [key for key in func_dict]
+            db_keys = [key for key in game_dict if key != 'index']
+            convert = {input_k[k]: db_keys[k] for k in range(len(input_k))}
+            # determine the score
             my_score = func_dict[my_input](rolled)
+            # select game
             current_game = Game.select().order_by(Game.index.desc()).get()
-
-            if my_input == '1': current_game.aces = my_score
-            if my_input == '2': current_game.twos = my_score
-            if my_input == '3': current_game.threes = my_score
-            if my_input == '4': current_game.fours = my_score
-            if my_input == '5': current_game.fives = my_score
-            if my_input == '6': current_game.sixes = my_score
-            if my_input == '3kind': current_game.three_kind = my_score
-            if my_input == '4kind': current_game.four_kind = my_score
-            if my_input == 'house': current_game.house = my_score
-            if my_input == 'sm': current_game.sm = my_score
-            if my_input == 'lg': current_game.lg = my_score
-            if my_input == 'yahtzee': current_game.yahtzee = my_score
-            if my_input == 'chance': current_game.chance = my_score
-
+            # modify database
+            setattr(current_game, convert[my_input], my_score)
             current_game.save()
             print('Score: {} saved!\n'.format(my_score))
-
             #reset game after scoring
             rerolls = 0
             rolled = None
-
         else:
             print('"{}" is not in the list.\n'.format(my_input))
     else:
         print('Roll dice first\n')
     return rolled, rerolls
 
+# view games and scores in the database
+# takes a rolled hand and number of rerolls - passes them through
 def view_scores(rolled, rerolls):
-    """View previous games"""
+    """View all games"""
     games = Game.select()
-
     for game in games:
         record = game.select().where(Game.index == game.index).dicts().get()
-        game_num = record.pop('index')
-        print('Game: {}'.format(game_num))
+        print(f'Game: {record["index"]}')
+        # substitute any '-1' scores with '-'
+        my_print = [
+            f'{key}:-' if record[key] == -1 else f'{key}:{record[key]}'
+            for key in record
+        ]
+        print('  '.join(my_print[1:7]))
+        print('  '.join(my_print[7:]))
 
-        my_print = []
-        for key in record.keys():
-            #turn -1 into '-' for display
-            if record[key] == -1:
-                record[key] = "-"
-            data = '{}:{}'.format(key, record[key])
-            my_print.append(data)
-
-        separator = '  '
-        print(separator.join(my_print[:6]))
-        print(separator.join(my_print[6:]))
-
-        next_action = input('Action [N/q] \n').lower().strip()
-        if next_action =='q':
+        next_action = input('Next or quit? [N/q] \n').lower().strip()
+        if next_action == 'q':
             break
     return rolled, rerolls
 
+# delete all database entries
+# takes a rolled hand and number of rerolls - passes them through
 def delete_games(rolled, rerolls):
     """Delete all games."""
     if input('Are you sure? [y/N]').lower().strip() == 'y':
         Game.delete().execute()
-        initialise()
-        print('All games deleted!')
+        print('All games deleted! \n')
+        next_action = input('New game or quit? [N/q] \n').lower().strip()
+        if next_action == 'q':
+            db.close()
+            exit()
+        else:
+            initialise()
     return rolled, rerolls
 
-def available_scores(score_list):
-    current_game = Game.select().order_by(Game.index.desc()).dicts().get()
-
-    invert_list = []
-    for value in current_game.values():
-        invert_list.insert(0, value)
-    invert_list.pop()
-    for item in range(len(invert_list)):
-        if invert_list[item] != -1:
-            score_list.pop((len(invert_list) - 1 ) - item)
-    return score_list
+# takes a dict of the (current) game to check scores against
+# returns a list of 'func_dict' keys where database score is '-1'
+def available_scores(game):
+    # list of database keys in 'game' but not 'index'
+    in_db = [key for key in game if key != 'index']
+    # list of keys to display for scoring
+    to_score = [key for key in func_dict]
+    # give 'to score' key if value of game key is '-1'
+    return [to_score[i] for i in range(len(to_score)) if game[in_db[i]] == -1]
 
 menu = OrderedDict([
         ('r', roll_dice),
