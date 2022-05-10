@@ -110,6 +110,7 @@ def reroll(rolled, rerolls):
     if rolled:
         if rerolls < 2:
             #validate decision by comparing roll_list and reroll_list
+            print('An empty list will reroll all dice')
             decision = input('List dice to re-roll:   ')
             # list of integers from 'decision'
             reroll_list = list(map(int, filter(str.isdigit, decision)))

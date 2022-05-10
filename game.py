@@ -8,7 +8,6 @@
 # It doesn't have a user interface and doesnt keep the scores #
 ###############################################################
 from hands import YahtzeeHand
-from reroll import RerollHand
 from scoresheets import YahtzeeScoresheet
 
 yhand = YahtzeeHand()
@@ -37,7 +36,8 @@ for _ in range (2):
     if decision.upper() == 'S':
         break
     else:
-        yhand = RerollHand(yhand, *decision)
+        decision = [int(item) for item in decision if item.isdigit()]
+        yhand = YahtzeeHand(yhand, decision)
         print(yhand)
 
 try:
