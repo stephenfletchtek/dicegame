@@ -8,7 +8,6 @@
 from collections import OrderedDict
 from peewee import *
 from hands import YahtzeeHand
-from reroll import RerollHand
 from scoresheets import YahtzeeScoresheet
 
 db = SqliteDatabase('yahtzee.db')
@@ -122,7 +121,7 @@ def reroll(rolled, rerolls):
                 else True for item in reroll_list
             ]
             if not False in check_list:
-                rolled = RerollHand(rolled, *reroll_list)
+                rolled = YahtzeeHand(rolled, reroll_list)
                 rerolls += 1
                 print('New hand {}\n'.format(rolled))
             else:

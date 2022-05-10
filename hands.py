@@ -5,33 +5,33 @@
 #############################################################
 from dice import D6
 
-
+# a hand of dice
 class Hand(list):
-    #build the hand
-    def __init__(self, size=0, die_class=None, *args, **kwargs):
+    def __init__(self, hand=None, reroll_list=None, size=0, die_class=None, *args, **kwargs):
         if not die_class:
             raise VaueError('You must have a die class')
         super().__init__()
-
-        #put the dice in a hand
-        for _ in range(size):
-            self.append(die_class())
+        # reroll if arguments were passed
+        if hand and reroll_list:
+            for item in reroll_list:
+                # this swaps out the first one it finds, and not all of them!
+                hand[hand.index(item)] = die_class()
+            [self.append(item) for item in hand]
+        # else make a new hand of 5 dice
+        else:
+            [self.append(die_class()) for _ in range(size)]
         self.sort()
 
-
-    #list the dice in the hand of a given value
+    # list the dice in the hand of a given value
     def _by_value(self, value):
-        dice = []
-        for die in self:
-            # no need for die.value
-            if die == value:
-                dice.append(die)
-        return dice
+        return [die for die in self if die == value]
 
-#will make a hand of 5 dice using super() through class Hand
+# makes a hand of 5 random dice if 'hand' and 'reroll_list' are blank
+# if 'hand' if duce.D6 and a 'reroll_list' of values are given
+# it rerolls dice in the hand matching the reroll list
 class YahtzeeHand(Hand):
-    def __init__(self, *args, **kwargs):
-        super().__init__(size=5, die_class=D6, *args, **kwargs)
+    def __init__(self, hand=None, reroll_list=None, *args, **kwargs):
+        super().__init__(hand, reroll_list, size=5, die_class=D6, *args, **kwargs)
 
     @property
     def ones(self):
